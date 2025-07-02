@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Button, TextField, Typography, Paper } from '@mui/material';
+import './Calculator.css';
 
 const Calculator = () => {
   const [input, setInput] = useState('');
@@ -63,39 +64,29 @@ const Calculator = () => {
   ];
 
   return (
-    <Box sx={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh',
-      backgroundColor: '#f5f5f5'
-    }}>
-      <Paper elevation={6} sx={{
-        padding: 3,
-        width: 350,
-        backgroundColor: '#ffffff',
-        borderRadius: 3
-      }}>
-        <Typography variant="h5" align="center" gutterBottom>
+    <Box className="calculator-container">
+      <Paper className="calculator-paper" elevation={6}>
+        <Typography className="calculator-title" variant="h5" align="center" gutterBottom>
           Calculator
         </Typography>
-        <TextField
-          fullWidth
-          variant="outlined"
-          value={input}
-          disabled
-          sx={{ marginBottom: 2, backgroundColor: '#f0f0f0' }}
-        />
+        <Box className="calculator-display">
+          <TextField
+            fullWidth
+            variant="outlined"
+            value={input}
+            disabled
+            className="calculator-input"
+            InputProps={{
+              style: { fontSize: '1.5rem', textAlign: 'right' }
+            }}
+          />
+        </Box>
         {result !== null && (
-          <Typography variant="h6" align="right" gutterBottom sx={{ marginBottom: 2 }}>
+          <Typography className="calculator-result" variant="h6" align="right" gutterBottom>
             Result: {result}
           </Typography>
         )}
-        <Box sx={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 1
-        }}>
+        <Box className="calculator-grid">
           {buttonLayout.map((btn) => (
             <Button
               key={btn}
@@ -106,14 +97,7 @@ const Calculator = () => {
                 else if (btn === '=') handleCalculate();
                 else handleButtonClick(btn);
               }}
-              sx={{
-                height: 60,
-                fontSize: 20,
-                backgroundColor: btn === '=' ? '#4caf50' : undefined,
-                '&:hover': {
-                  backgroundColor: btn === '=' ? '#45a049' : undefined
-                }
-              }}
+              className={`calculator-button ${['+', '-', '*', '/'].includes(btn) ? 'operator-button' : ''} ${btn === '=' ? 'equal-button' : ''} ${btn === 'C' ? 'clear-button' : ''} ${!['+', '-', '*', '/', '=', 'C'].includes(btn) ? 'number-button' : ''}`}
             >
               {btn}
             </Button>
