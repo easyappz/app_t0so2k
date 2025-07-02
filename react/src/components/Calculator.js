@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Box, Button, TextField, Typography, Paper } from '@mui/material';
+import axios from 'axios';
 import './Calculator.css';
 
 const Calculator = () => {
   const [input, setInput] = useState('');
   const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
 
   const handleButtonClick = (value) => {
     setInput((prev) => prev + value);
@@ -13,45 +15,59 @@ const Calculator = () => {
   const handleClear = () => {
     setInput('');
     setResult(null);
+    setError('');
   };
 
-  const handleCalculate = () => {
+  const handleCalculate = async () => {
     try {
-      const numInput = input.split(/[+\-*/]/).map(num => parseFloat(num));
+      setError('');
+      const numbers = input.split(/[+\-*/]/).map(num => parseFloat(num));
       const operators = input.split('').filter(char => ['+', '-', '*', '/'].includes(char));
 
-      if (numInput.length < 2 || numInput.some(isNaN)) {
-        setResult('Error');
+      if (numbers.length !== 2 || numbers.some(isNaN)) {
+        setError('Please enter a valid expression with two numbers.');
+        setResult(null);
         return;
       }
 
-      let calcResult = numInput[0];
-      for (let i = 0; i < operators.length; i++) {
-        const num = numInput[i + 1];
-        switch (operators[i]) {
-          case '+':
-            calcResult += num;
-            break;
-          case '-':
-            calcResult -= num;
-            break;
-          case '*':
-            calcResult *= num;
-            break;
-          case '/':
-            if (num === 0) {
-              setResult('Error');
-              return;
-            }
-            calcResult /= num;
-            break;
-          default:
-            break;
-        }
+      if (operators.length !== 1) {
+        setError('Please use exactly one operator (+, -, *, /).');
+        setResult(null);
+        return;
       }
-      setResult(calcResult);
-    } catch (error) {
-      setResult('Error');
+
+      const [num1, num2] = numbers;
+      const operator = operators[0];
+      let endpoint = '';
+
+      switch (operator) {
+        case '+':
+          endpoint = '/api/calculate/add';
+          break;
+        case '-':
+          endpoint = '/api/calculate/subtract';
+          break;
+        case '*':
+          endpoint = '/api/calculate/multiply';
+          break;
+        case '/':
+          endpoint = '/api/calculate/divide';
+          break;
+        default:
+          setError('Invalid operator.');
+          return;
+      }
+
+      const response = await axios.post(endpoint, { num1, num2 });
+      if (response.data && response.data.result !== undefined) {
+        setResult(response.data.result);
+      } else {
+        setError('Unexpected response from server.');
+        setResult(null);
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error connecting to server.');
+      setResult(null);
     }
   };
 
@@ -84,6 +100,11 @@ const Calculator = () => {
         {result !== null && (
           <Typography className="calculator-result" variant="h6" align="right" gutterBottom>
             Result: {result}
+          </Typography>
+        )}
+        {error && (
+          <Typography className="calculator-error" variant="body1" align="right" color="error" gutterBottom>
+            {error}
           </Typography>
         )}
         <Box className="calculator-grid">
